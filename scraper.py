@@ -41,22 +41,6 @@ def fetch(permit_number: str, link: str) -> Optional[BeautifulSoup]:
     return ret
 
 
-def parse(permit_number: str, soap: BeautifulSoup):
-    store_info = {}
-    store_info["permit_number"] = permit_number
-    store_info["work_location"] = soap.select_one(
-        "div#divWorkLocationInfo"
-    ).text.strip()
-    elems = soap.select("td.td_parent_left")
-    for elem in elems:
-        tag = elem.select_one("h1").text.strip().lower().replace(" ", "_")
-        content = elem.select_one("span").text.strip()
-        store_info[tag] = content
-    output_file_path = OUTPUT_DIR / f"{permit_number}.json"
-    with output_file_path.open("w") as file:
-        json.dump(store_info, file, indent=2)
-
-
 def work(start: int, count: int):
     try:
         fnames = os.listdir(INDEX_DIR)
@@ -71,13 +55,45 @@ def work(start: int, count: int):
             with fpath.open("r") as file:
                 info = json.load(file)
                 permit_number = info["permit_number"]
-                if fname.startswith(permit_number):
-                    logger.info("already done")
+
+                already_done = False
+                output_file_path = OUTPUT_DIR / f"{permit_number}.json"
+                if output_file_path.is_file():
+                    with output_file_path.open("r") as file:
+                        info = json.load(file)
+                        if info["permit_number"] == permit_number:
+                            logger.info("already done")
+                            already_done = True
+
+                if already_done:
                     continue
 
                 soap = fetch(permit_number=info["permit_number"], link=info["link"])
                 if soap is not None:
-                    parse(permit_number=info["permit_number"], soap=soap)
+                    store_info = {}
+                    store_info["permit_number"] = permit_number
+                    store_info["link"] = info["link"]
+                    store_info["work_location"] = soap.select_one(
+                        "div#divWorkLocationInfo"
+                    ).get_text(strip=False, separator="\n").strip()
+                    elems = soap.select("td.td_parent_left")
+                    for elem in elems:
+                        tag = (
+                            elem.select_one("h1")
+                            .text.strip()
+                            .lower()
+                            .replace(" ", "_")
+                            .replace(":", "")
+                        )
+                        content = (
+                            elem.select_one("table")
+                            .get_text(strip=False, separator="\n")
+                            .strip()
+                            .replace("\t", " ")
+                        )
+                        store_info[tag] = content
+                    with output_file_path.open("w") as file:
+                        json.dump(store_info, file, indent=2)
                 else:
                     logger.error("soap is None")
 
