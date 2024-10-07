@@ -12,3 +12,5 @@ crawler_path = os.path.join(CUR_DIR, "scraper.py")
 cmdline = f"{crawler_path} --start={begin} --count={count}"
 
 os.system(cmdline)
+
+input("Press ENTER to exit.")
