@@ -23,7 +23,7 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 BASE_URL = "https://mauwi.wycokck.org"
 
 
-def fetch(permit_number: str, link: str) -> Optional[BeautifulSoup]:
+def fetch(link: str) -> Optional[BeautifulSoup]:
     ret = None
 
     url = BASE_URL + link
@@ -52,7 +52,7 @@ def work(start: int, count: int):
                     if current < start:
                         current += 1
                         continue
-                    if current >= start + count:  # Use break instead of continue
+                    if count > 0 and current >= start + count:  # Use break instead of continue
                         break
 
                     try:
@@ -75,7 +75,7 @@ def work(start: int, count: int):
                             current += 1
                             continue
 
-                        soap = fetch(permit_number=info["permit_number"], link=link)
+                        soap = fetch(link=link)
                         if soap is not None:
                             store_info = {}
                             store_info["permit_number"] = permit_number
