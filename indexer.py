@@ -30,45 +30,49 @@ def work():
 
         page_number = 0
         while True:
-            logger.info(f"page_number: {page_number}")
+            try:
+                logger.info(f"page_number: {page_number}")
 
-            # fetch table rows
-            page.wait_for_selector('td[style="width:110px;"]')
-            elems = page.query_selector_all('td[style="width:110px;"]')
-            if len(elems) == 0:
-                break
+                # fetch table rows
+                page.wait_for_selector('td[style="width:110px;"]')
+                elems = page.query_selector_all('td[style="width:110px;"]')
+                if len(elems) == 0:
+                    break
 
-            # iterate rows
-            for elem in elems:
-                permit_number = elem.inner_text().strip()
-                link = elem.query_selector("a").get_attribute("href")
+                # iterate rows
+                for elem in elems:
+                    permit_number = elem.inner_text().strip()
+                    elem.wait_for_selector("a")
+                    link = elem.query_selector("a").get_attribute("href")
 
-                # save `permit_number` and `link``
-                output_file_path = OUTPUT_PATH / f"{permit_number}.json"
-                with output_file_path.open("w") as file:
-                    json.dump(
-                        {
-                            "permit_number": permit_number,
-                            "link": link,
-                        },
-                        file,
-                    )
+                    # save `permit_number` and `link``
+                    output_file_path = OUTPUT_PATH / f"{permit_number}.json"
+                    with output_file_path.open("w") as file:
+                        json.dump(
+                            {
+                                "permit_number": permit_number,
+                                "link": link,
+                            },
+                            file,
+                        )
 
-            # click next button
-            page.wait_for_selector("a.aca_simple_text.font11px", state="attached")
-            page_btns = page.query_selector_all("a.aca_simple_text.font11px")
-            next_btn = page_btns[-1]
-            next_btn.click()
+                # click next button
+                page.wait_for_selector("a.aca_simple_text.font11px", state="attached")
+                page_btns = page.query_selector_all("a.aca_simple_text.font11px")
+                next_btn = page_btns[-1]
+                next_btn.click()
 
-            # wait for page loading
-            page.wait_for_load_state(state="networkidle")
-            display_style = ""
-            while display_style != "none":
-                display_style = page.evaluate("""() => {
-                    const element = document.querySelector('#divGlobalLoading');
-                    return window.getComputedStyle(element).display;
-                }""")
-                time.sleep(0.1)
+                # wait for page loading
+                page.wait_for_load_state(state="networkidle")
+                display_style = ""
+                while display_style != "none":
+                    display_style = page.evaluate("""() => {
+                        const element = document.querySelector('#divGlobalLoading');
+                        return window.getComputedStyle(element).display;
+                    }""")
+                    time.sleep(0.1)
+            except Exception as ex:
+                logger.exception(ex)
 
             page_number += 1
 
