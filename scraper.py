@@ -50,9 +50,10 @@ def work(start: int, count: int):
             with fpath.open("r") as file:
                 for line in file:
                     if current < start:
+                        current += 1
                         continue
-                    if current >= start + count:
-                        continue
+                    if current >= start + count:  # Use break instead of continue
+                        break
 
                     try:
                         info = json.loads(line)
