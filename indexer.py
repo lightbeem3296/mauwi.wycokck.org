@@ -97,7 +97,6 @@ def work(year: int):
                         # iterate rows
                         for elem in elems:
                             permit_number = elem.inner_text().strip()
-                            elem.wait_for_selector("a", state="attached")
                             link = elem.query_selector("a").get_attribute("href")
 
                             index_list.append(
