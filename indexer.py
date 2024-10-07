@@ -96,15 +96,18 @@ def work(year: int):
 
                         # iterate rows
                         for elem in elems:
-                            permit_number = elem.inner_text().strip()
-                            link = elem.query_selector("a").get_attribute("href")
+                            try:
+                                permit_number = elem.inner_text().strip()
+                                link = elem.query_selector("a").get_attribute("href")
 
-                            index_list.append(
-                                {
-                                    "permit_number": permit_number,
-                                    "link": link,
-                                }
-                            )
+                                index_list.append(
+                                    {
+                                        "permit_number": permit_number,
+                                        "link": link,
+                                    }
+                                )
+                            except Exception as ex:
+                                logger.exception(ex)
 
                         # click next button
                         page_btns = page.query_selector_all(
